@@ -31,6 +31,7 @@ class PreferenceControllerDelegate implements SeekBar.OnSeekBarChangeListener, V
     private int minValue;
     private int interval;
     private int currentValue;
+    private int maxSeekbarProgress;
     private String measurementUnit;
     private boolean dialogEnabled;
 
@@ -81,7 +82,7 @@ class PreferenceControllerDelegate implements SeekBar.OnSeekBarChangeListener, V
         if(attrs == null) {
             currentValue = DEFAULT_CURRENT_VALUE;
             minValue = DEFAULT_MIN_VALUE;
-            maxValue = DEFAULT_MAX_VALUE;
+            maxSeekbarProgress = DEFAULT_MAX_VALUE;
             interval = DEFAULT_INTERVAL;
             dialogEnabled = DEFAULT_DIALOG_ENABLED;
 
@@ -92,8 +93,8 @@ class PreferenceControllerDelegate implements SeekBar.OnSeekBarChangeListener, V
             try {
                 minValue = a.getInt(R.styleable.SeekBarPreference_msbp_minValue, DEFAULT_MIN_VALUE);
                 interval = a.getInt(R.styleable.SeekBarPreference_msbp_interval, DEFAULT_INTERVAL);
-                int saved_maxValue = a.getInt(R.styleable.SeekBarPreference_msbp_maxValue, DEFAULT_MAX_VALUE);
-                maxValue = (saved_maxValue - minValue) / interval;
+                maxValue = a.getInt(R.styleable.SeekBarPreference_msbp_maxValue, DEFAULT_MAX_VALUE);
+                maxSeekbarProgress = (maxValue - minValue) / interval;
                 dialogEnabled = a.getBoolean(R.styleable.SeekBarPreference_msbp_dialogEnabled, DEFAULT_DIALOG_ENABLED);
 
                 measurementUnit = a.getString(R.styleable.SeekBarPreference_msbp_measurementUnit);
@@ -135,7 +136,7 @@ class PreferenceControllerDelegate implements SeekBar.OnSeekBarChangeListener, V
         measurementView = (TextView) view.findViewById(R.id.measurement_unit);
         valueView = (TextView) view.findViewById(R.id.seekbar_value);
 
-        setMaxValue(maxValue);
+        setMaxValue(maxSeekbarProgress);
         seekBarView.setOnSeekBarChangeListener(this);
 
         measurementView.setText(measurementUnit);
@@ -174,13 +175,13 @@ class PreferenceControllerDelegate implements SeekBar.OnSeekBarChangeListener, V
 
     @Override
     public void onClick(final View v) {
-        new CustomValueDialog(context, dialogStyle, minValue, maxValue, currentValue)
+        new CustomValueDialog(context, dialogStyle, minValue, maxSeekbarProgress, currentValue)
                 .setPersistValueListener(new PersistValueListener() {
                     @Override
                     public boolean persistInt(int value) {
                         setCurrentValue(value);
                         seekBarView.setOnSeekBarChangeListener(null);
-                        seekBarView.setProgress(currentValue - minValue);
+                        seekBarView.setProgress((currentValue - minValue) / interval);
                         seekBarView.setOnSeekBarChangeListener(PreferenceControllerDelegate.this);
 
                         valueView.setText(String.valueOf(currentValue));
@@ -251,11 +252,11 @@ class PreferenceControllerDelegate implements SeekBar.OnSeekBarChangeListener, V
     }
 
     int getMaxValue() {
-        return maxValue;
+        return maxSeekbarProgress;
     }
 
     void setMaxValue(int maxValue) {
-        this.maxValue = maxValue;
+        this.maxSeekbarProgress = maxValue;
 
         if (seekBarView != null) {
             if (minValue <= 0 && maxValue >= 0) {
@@ -265,7 +266,7 @@ class PreferenceControllerDelegate implements SeekBar.OnSeekBarChangeListener, V
                 seekBarView.setMax(maxValue);
             }
 
-            seekBarView.setProgress(currentValue - minValue);
+            seekBarView.setProgress((currentValue - minValue) / interval);
         }
     }
 
@@ -275,7 +276,7 @@ class PreferenceControllerDelegate implements SeekBar.OnSeekBarChangeListener, V
 
     public void setMinValue(int minValue) {
         this.minValue = minValue;
-        setMaxValue(maxValue);
+        setMaxValue(maxSeekbarProgress);
     }
 
     int getInterval() {
@@ -301,7 +302,7 @@ class PreferenceControllerDelegate implements SeekBar.OnSeekBarChangeListener, V
         }
         currentValue = value;
         if(seekBarView != null)
-            seekBarView.setProgress(currentValue - minValue);
+            seekBarView.setProgress((currentValue - minValue) / interval);
 
         if(persistValueListener != null) {
             persistValueListener.persistInt(value);
