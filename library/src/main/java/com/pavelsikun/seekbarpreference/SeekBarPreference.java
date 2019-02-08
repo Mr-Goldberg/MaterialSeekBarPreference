@@ -126,4 +126,14 @@ public class SeekBarPreference extends Preference implements View.OnClickListene
     public void setDialogStyle(int dialogStyle) {
         controllerDelegate.setDialogStyle(dialogStyle);
     }
+
+    public ValueFormatter getValueFormatter()
+    {
+        return controllerDelegate.getValueFormatter();
+    }
+
+    public void setValueFormatter(ValueFormatter valueFormatter)
+    {
+        controllerDelegate.setValueFormatter(valueFormatter);
+    }
 }
